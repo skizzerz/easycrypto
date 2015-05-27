@@ -510,14 +510,37 @@ class DSA {
         });
     }
 
-    static importKey() {
-
+    // returns a Promise that resolves with the imported key, given keyData in the specified format
+    // format MUST be one of the following strings that denotes export format: "raw", "pkcs8", "spki", "jwk"
+    // if format is "raw", "pkcs8", or "spki", keyData MUST be an ArrayBuffer, ArrayBufferView, or BinaryData object.
+    // if format is "jwk", keyData MUST be an object in the JSON Web Key format, using the UUIDs at the top of this
+    //   file for the "kty" and "alg" parameters.
+    // algorithm MUST be an object with the following keys:
+    //   name: "DSA"
+    //   hash: A hash algorithm identifier, such as "SHA-256" or "SHA-512"
+    // extractable MUST be a boolean that describes whether or not the private key is extractable via exportKey().
+    // keyUsages MUST be an array that MAY contain the following values:
+    //   sign: If keyUsages contains "sign", then the key may be used to sign messages via sign(). This SHOULD only
+    //     be specified when importing a private key.
+    //   verify: If keyUsages contains "verify", then the key may be used to verify messages via verify(). This SHOULD
+    //     only be specified when importing a public key.
+    // If importing a key that additionally specifies metadata (such as JWK), the values specified there MUST match
+    // with the extractable and keyUsages parameters.
+    static importKey(format, keyData, algorithm, extractable, keyUsages) {
+        if (["raw", "pkcs8", "spki", "jwk"].indexOf(format) === -1) {
+            throw new Error("Invalid input format");
+        }
+        
+        
     }
 
     // returns a Promise that resolves with the exported key in the specified format
     // format MUST be one of the following strings that denotes export format: "raw", "pkcs8", "spki", "jwk"
     // key MUST be a key object (public or private) returned from generateKey() or importKey() and must be extractable
-    // if exporting a private key, the public key will be included in the exported value
+    // If format is "raw", the Promise resolves with a Uint8Array containing the key with no additional metadata
+    // If format is "jwk", the Promise resolves with a JSON Web Key object containing the requested key and additional
+    //   metadata. As this is a nonstandard JWK format, per the spec the "kty" and "alg" fields are UUIDs. Please
+    //   see the top of this file for which UUIDs are in use if you wish to develop your own interop with this format.
     // TODO: At this time, only raw and jwk are supported. Add support for pkcs8 and spki (will need a DER encoder)
     static exportKey(format, key) {
         if (key[_handle] === undefined
